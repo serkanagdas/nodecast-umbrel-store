@@ -1,0 +1,30 @@
+manifestVersion: 1
+id: serkan-nodecast-tv
+name: NodeCast TV
+tagline: Self-hosted IPTV player for Xtream Codes and M3U providers
+icon: https://raw.githubusercontent.com/technomancer702/nodecast-tv/main/public/img/logo-banner.png
+category: Media
+version: "1.0.0"
+port: 3000
+description: >-
+  Modern web-based IPTV player featuring Live TV, EPG, Movies (VOD) and
+  Series support. Built for large playlists (7000+ channels) with virtual
+  scrolling, virtualized channel zapping and a 24h interactive TV guide.
+  Connects to any Xtream Codes provider or M3U playlist. Includes
+  multi-user auth (admin/viewer roles), favorites, and smart remux/transcode
+  stream handling.
+
+developer: technomancer702
+website: https://github.com/technomancer702/nodecast-tv
+submitter: Serkan
+submission: https://github.com/serkanagdas/nodecast-umbrel-store
+repo: https://github.com/serkanagdas/nodecast-umbrel-store
+support: https://github.com/technomancer702/nodecast-tv/issues
+gallery:
+  - https://raw.githubusercontent.com/technomancer702/nodecast-tv/main/public/img/logo-banner.png
+releaseNotes: >-
+  Initial release in the Serkan community app store.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""

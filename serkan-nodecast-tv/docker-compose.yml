@@ -1,0 +1,18 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      # The format here is: <app-id>_<docker-service-name>_1
+      APP_HOST: serkan-nodecast-tv_server_1
+      APP_PORT: 3000
+
+  server:
+    image: ghcr.io/technomancer702/nodecast-tv:latest
+    restart: on-failure
+    init: true
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    volumes:
+      - ${APP_DATA_DIR}/data:/app/data
