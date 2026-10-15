@@ -22,7 +22,6 @@ repo: https://github.com/serkanagdas/nodecast-umbrel-store
 support: https://www.stremio.com/support
 gallery:
   - https://raw.githubusercontent.com/serkanagdas/nodecast-umbrel-store/main/serkan-stremio-server/icon.svg
-  - https://raw.githubusercontent.com/serkanagdas/nodecast-umbrel-store/main/serkan-stremio-server/character.svg
 releaseNotes: >-
   Initial release in the Serkan community app store.
 dependencies: []

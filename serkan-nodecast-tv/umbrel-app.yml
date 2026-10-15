@@ -2,8 +2,7 @@ manifestVersion: 1
 id: serkan-nodecast-tv
 name: NodeCast TV
 tagline: Self-hosted IPTV player for Xtream Codes and M3U providers
-icon: https://raw.githubusercontent.com/serkanagdas/nodecast-umbrel-store/main/serkan-nodecast-tv/icon.svg
-
+icon: https://raw.githubusercontent.com/technomancer702/nodecast-tv/main/public/img/logo-banner.png
 category: Media
 version: "1.0.0"
 port: 3000
@@ -18,8 +17,8 @@ description: >-
 developer: technomancer702
 website: https://github.com/technomancer702/nodecast-tv
 submitter: Serkan
-submission: https://github.com/serkanagdas/nodecast-umbrel-store
-repo: https://github.com/serkanagdas/nodecast-umbrel-store
+submission: https://github.com/serkan/nodecast-umbrel-store
+repo: https://github.com/serkan/nodecast-umbrel-store
 support: https://github.com/technomancer702/nodecast-tv/issues
 gallery:
   - https://raw.githubusercontent.com/technomancer702/nodecast-tv/main/public/img/logo-banner.png
