@@ -1,0 +1,30 @@
+manifestVersion: 1
+id: serkan-openhands
+name: OpenHands
+tagline: AI software engineering agent with web GUI
+icon: https://raw.githubusercontent.com/serkanagdas/nodecast-umbrel-store/main/serkan-openhands/icon.svg
+category: AI
+version: "1.0.0"
+port: 8000
+description: >-
+  OpenHands (formerly OpenDevin) is an autonomous AI software
+  engineering agent. Write code, run commands, browse the web and
+  build software from a browser-based chat interface. Connects to
+  your preferred LLM provider (Claude, GPT, local models via
+  Ollama/LM Studio, etc.). Mounts your umbrel Workspace so the
+  agent can work directly on your Projects and Obsidian vault.
+
+developer: All Hands AI
+website: https://github.com/All-Hands-AI/OpenHands
+submitter: Serkan
+submission: https://github.com/serkanagdas/nodecast-umbrel-store
+repo: https://github.com/serkanagdas/nodecast-umbrel-store
+support: https://github.com/All-Hands-AI/OpenHands/issues
+gallery:
+  - https://raw.githubusercontent.com/serkanagdas/nodecast-umbrel-store/main/serkan-openhands/icon.svg
+releaseNotes: >-
+  Initial release in the Serkan community app store.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""

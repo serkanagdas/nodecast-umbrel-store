@@ -1,0 +1,31 @@
+manifestVersion: 1
+id: serkan-stremio-server
+name: Stremio Streaming Server
+tagline: Streaming server backend for Stremio clients
+icon: https://raw.githubusercontent.com/serkanagdas/nodecast-umbrel-store/main/serkan-stremio-server/icon.svg
+category: Media
+version: "1.0.0"
+port: 11470
+description: >-
+  Stremio Streaming Server — the backend that powers Stremio
+  clients (desktop, mobile, TV). Streams your library and addons
+  to every device on your network or over Tailscale. Runs as a
+  local streaming hub behind your own network with no cloud
+  dependency. Connect Stremio clients to
+  http://<your-umbrel>:11470 to get started.
+
+developer: Stremio
+website: https://www.stremio.com
+submitter: Serkan
+submission: https://github.com/serkanagdas/nodecast-umbrel-store
+repo: https://github.com/serkanagdas/nodecast-umbrel-store
+support: https://www.stremio.com/support
+gallery:
+  - https://raw.githubusercontent.com/serkanagdas/nodecast-umbrel-store/main/serkan-stremio-server/icon.svg
+  - https://raw.githubusercontent.com/serkanagdas/nodecast-umbrel-store/main/serkan-stremio-server/character.svg
+releaseNotes: >-
+  Initial release in the Serkan community app store.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""

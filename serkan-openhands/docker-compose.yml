@@ -1,0 +1,20 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      # The format here is: <app-id>_<docker-service-name>_1
+      APP_HOST: serkan-openhands_server_1
+      APP_PORT: 8000
+
+  server:
+    image: ghcr.io/openhands/agent-canvas:latest
+    restart: on-failure
+    init: true
+    volumes:
+      # Agent config / conversation history (persistent across updates)
+      - ${APP_DATA_DIR}/data:/home/openhands/.openhands
+      # Your umbrel Workspace — the agent works on your real projects.
+      # HOST PATH must match your umbrelOS install; verify with
+      # `ls ~/Workspace` in the umbrelOS Terminal before pushing.
+      - /home/umbrel/Workspace:/projects

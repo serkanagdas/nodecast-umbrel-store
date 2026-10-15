@@ -1,0 +1,19 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      # The format here is: <app-id>_<docker-service-name>_1
+      APP_HOST: serkan-stremio-server_server_1
+      APP_PORT: 11470
+
+  server:
+    image: stremio/server:latest
+    restart: on-failure
+    init: true
+    environment:
+      # Disable disk cache to keep the app data dir small
+      - NO_CACHE=1
+    volumes:
+      # Stremio server state (library, settings) — persistent across updates
+      - ${APP_DATA_DIR}/data:/root/.stremio-server
