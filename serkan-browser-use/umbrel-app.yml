@@ -1,0 +1,31 @@
+manifestVersion: 1
+id: serkan-browser-use
+name: Browser Use WebUI
+tagline: Run AI browser agents from a web interface
+icon: https://raw.githubusercontent.com/serkanagdas/nodecast-umbrel-store/main/serkan-browser-use/icon.svg
+category: AI
+version: "3.0.0"
+port: 7788
+description: >-
+  Browser Use WebUI — run AI agents that control a real browser
+  from a friendly web interface. Supports OpenAI, Anthropic,
+  Google, DeepSeek, Ollama (local models) and many more providers.
+  Watch the agent work via live VNC view, use your own browser
+  profile, and automate web tasks with custom browser settings.
+
+  Configure your LLM API keys in the UI settings after install.
+
+developer: Browser Use
+website: https://browser-use.com
+submitter: Serkan
+submission: https://github.com/serkanagdas/nodecast-umbrel-store
+repo: https://github.com/serkanagdas/nodecast-umbrel-store
+support: https://github.com/browser-use/web-ui/issues
+gallery:
+  - https://raw.githubusercontent.com/serkanagdas/nodecast-umbrel-store/main/serkan-browser-use/icon.svg
+releaseNotes: >-
+  Initial release — Browser Use WebUI v3.0.0.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
