@@ -1,16 +1,11 @@
 name: Check upstream updates
 
-# Checks each packaged app's upstream releases. When a newer version is
-# found, opens (or updates) a PR bumping the compose image tag and the
-# umbrel-app.yml version. Merge the PR and umbrelOS shows "Update available".
-#
-# Tag source per app:
-# - openbot:      GitHub releases (v0.49.0) -> GHCR image tag v0.49.0 exists (keep v)
-# - nodecast-tv:  GitHub releases (v2.2.1)  -> GHCR image tag 1.4.3 style (strip v)
-# - stremio:      GitHub releases           -> Docker Hub plain tags (strip v)
-# NOTE: Stremio/server has no GitHub releases endpoint entry that works with
-#       /releases/latest reliably for every repo; if it 404s the job for that
-#       app fails harmlessly (fail-fast: false). Fallback: bump manually.
+# Checks each packaged app's REGISTRY for the newest image tag (the source of
+# truth is the registry, not GitHub releases — releases can run ahead of the
+# published image, e.g. nodecast v2.2.1 with GHCR tags ending at 1.4.3).
+# When a newer tag exists, opens (or updates) a PR bumping the compose image
+# tag and the umbrel-app.yml version. Merge the PR and umbrelOS shows
+# "Update available".
 
 on:
   schedule:
@@ -28,43 +23,58 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # dir | registry type | registry path (image without tag) | prefix filter
           - dir: serkan-openbot
-            repo: nightly-labs/openbot
+            registry: ghcr
             image: ghcr.io/nightly-labs/openbot
-            strip_v: false
+            path: nightly-labs/openbot
+            prefix: "v"
           - dir: serkan-nodecast-tv
-            repo: technomancer702/nodecast-tv
+            registry: ghcr
             image: ghcr.io/technomancer702/nodecast-tv
-            strip_v: true
+            path: technomancer702/nodecast-tv
+            prefix: ""
           - dir: serkan-stremio-server
-            repo: Stremio/server
+            registry: dockerhub
             image: stremio/server
-            strip_v: true
+            path: stremio/server
+            prefix: ""
     steps:
       - name: Checkout store repo
         uses: actions/checkout@v4
 
-      - name: Get latest upstream release
+      - name: Get newest image tag from registry
         id: upstream
         run: |
-          TAG="$(curl -sSf "https://api.github.com/repos/${{ matrix.repo }}/releases/latest" | jq -r .tag_name)"
-          if [ -z "$TAG" ] || [ "$TAG" = "null" ]; then
-            echo "No releases found for ${{ matrix.repo }}"; exit 1
-          fi
-          if [ "${{ matrix.strip_v }}" = "true" ]; then
-            VERSION="${TAG#v}"
+          PREFIX="${{ matrix.prefix }}"
+          if [ "${{ matrix.registry }}" = "ghcr" ]; then
+            TOKEN="$(curl -sSf "https://ghcr.io/token?scope=repository:${{ matrix.path }}:pull" | jq -r .token)"
+            TAGS="$(curl -sSf -H "Authorization: Bearer $TOKEN" \
+              "https://ghcr.io/v2/${{ matrix.path }}/tags/list" | jq -r '.tags[]?')"
           else
-            VERSION="$TAG"
+            TAGS="$(curl -sSf "https://hub.docker.com/v2/repositories/${{ matrix.path }}/tags?page_size=100" \
+              | jq -r '.results[]?.name')"
           fi
+
+          # Keep semver-shaped tags only (optionally with the prefix), newest last
+          LATEST="$(echo "$TAGS" | grep -E "^${PREFIX}[0-9]+\.[0-9]+\.[0-9]+$" \
+            | sort -t. -k1,1n -k2,2n -k3,3n | tail -1)"
+
+          if [ -z "$LATEST" ]; then
+            echo "No semver image tags found for ${{ matrix.path }}"; exit 1
+          fi
+
+          # Display version without the prefix (umbrel-app.yml style)
+          VERSION="${LATEST#${PREFIX}}"
+          echo "tag=$LATEST" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "Upstream latest: $TAG -> image tag: $VERSION"
+          echo "Newest ${{ matrix.path }} image tag: $LATEST (version $VERSION)"
 
       - name: Compare with packaged version
         id: cmp
         run: |
           CURRENT="$(grep -m1 '^version:' ${{ matrix.dir }}/umbrel-app.yml | sed 's/version: *"\?//;s/"\?//')"
-          echo "Packaged: $CURRENT / Upstream image tag: ${{ steps.upstream.outputs.version }}"
+          echo "Packaged: $CURRENT / Newest image tag: ${{ steps.upstream.outputs.version }}"
           if [ "$CURRENT" = "${{ steps.upstream.outputs.version }}" ]; then
             echo "update=false" >> "$GITHUB_OUTPUT"
           else
@@ -78,13 +88,13 @@ jobs:
       - name: Bump files
         if: steps.cmp.outputs.update == 'true'
         env:
-          VERSION: ${{ steps.upstream.outputs.version }}
           TAG: ${{ steps.upstream.outputs.tag }}
+          VERSION: ${{ steps.upstream.outputs.version }}
         run: |
           sed -i "s|^version: .*|version: \"${VERSION}\"|" ${{ matrix.dir }}/umbrel-app.yml
-          sed -i "s|^\(\s*image: ${{ matrix.image }}:\).*|\1${VERSION}|" ${{ matrix.dir }}/docker-compose.yml
+          sed -i "s|^\(\s*image: ${{ matrix.image }}:\).*|\1${TAG}|" ${{ matrix.dir }}/docker-compose.yml
           # releaseNotes: single-line value on the line after "releaseNotes: >-"
-          sed -i "/^releaseNotes: >-/{n;s/.*/  Upstream release ${TAG}./}" ${{ matrix.dir }}/umbrel-app.yml
+          sed -i "/^releaseNotes: >-/{n;s/.*/  Upstream image release ${TAG}./}" ${{ matrix.dir }}/umbrel-app.yml
 
       - name: Create Pull Request
         if: steps.cmp.outputs.update == 'true'
@@ -95,7 +105,7 @@ jobs:
           delete-branch: true
           title: "Update ${{ matrix.dir }} to ${{ steps.upstream.outputs.version }}"
           body: |
-            Upstream `${{ matrix.repo }}` released `${{ steps.upstream.outputs.tag }}`.
+            Newest published image tag for `${{ matrix.path }}` is `${{ steps.upstream.outputs.tag }}`.
 
             Bumps:
             - `${{ matrix.dir }}/docker-compose.yml` image tag
