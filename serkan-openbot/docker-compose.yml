@@ -10,7 +10,7 @@ services:
       APP_PORT: 3000
 
   server:
-    image: ghcr.io/nightly-labs/openbot:0.49.0
+    image: ghcr.io/nightly-labs/openbot:latest
     restart: on-failure
     init: true
     security_opt:
