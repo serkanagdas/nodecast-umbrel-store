@@ -25,7 +25,7 @@ submission: https://github.com/serkanagdas/nodecast-umbrel-store
 repo: https://github.com/serkanagdas/nodecast-umbrel-store
 support: https://github.com/nightly-labs/openbot/issues
 gallery:
-  - https://raw.githubusercontent.com/serkanagdas/nodecast-umbrel-store/main/serkan-openbot/icon2.svg
+  - https://raw.githubusercontent.com/serkanagdas/nodecast-umbrel-store/main/serkan-openbot/icon.svg
 releaseNotes: >-
   Initial release — OpenBot server v0.49.0.
 dependencies: []
