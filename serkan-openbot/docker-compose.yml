@@ -21,6 +21,7 @@ services:
       # compose system, so we unconfine seccomp to allow the Electron
       # sandbox user namespaces. no-new-privileges stays on as a guard.
       - seccomp=unconfined
+      - apparmor=unconfined
       - no-new-privileges:true
     # Chromium uses shared memory; the Docker default of 64 MB is too small.
     shm_size: 1g
