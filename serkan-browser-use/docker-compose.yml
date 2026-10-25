@@ -8,24 +8,13 @@ services:
       APP_PORT: 7788
 
   server:
-    # Built from browser-use/web-ui v3.0.0 (upstream publishes no prebuilt
-    # version-tagged image, so we pin the source release and let umbrel build).
-    # If builds are too slow on your device, a prebuilt community image can be
-    # swapped in here later.
-    build:
-      context: https://github.com/browser-use/web-ui.git#v3.0.0
-      dockerfile: Dockerfile
-      args:
-        TARGETPLATFORM: linux/amd64
-    image: serkan-browser-use:3.0.0
+    # Community-maintained prebuilt image of browser-use/web-ui,
+    # version tags track upstream releases (v3.0.0 = upstream v3.0.0).
+    image: smanx/browser-use-web-ui:v3.0.0
     restart: on-failure
     init: true
     environment:
-      # LLM keys are entered in the WebUI settings after install;
-      # these endpoints just pre-fill the defaults.
-      - OPENAI_ENDPOINT=https://api.openai.com/v1
-      - ANTHROPIC_ENDPOINT=https://api.anthropic.com
-      - OLLAMA_ENDPOINT=http://localhost:11434
+      # LLM keys are entered in the WebUI settings after install.
       - ANONYMIZED_TELEMETRY=false
       - BROWSER_USE_LOGGING_LEVEL=info
       # Browser settings
