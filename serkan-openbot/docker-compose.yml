@@ -5,9 +5,12 @@ services:
     environment:
       # The format here is: <app-id>_<docker-service-name>_1
       # NOTE: OpenBot publishes no web UI; this proxy exists only because
-      # umbrel requires one. Open the app via desktop/phone client instead.
+      # umbrel requires one. The proxy points at the server container's
+      # Team API port — opening this app's icon will show an error page
+      # or an empty response. That is expected: manage OpenBot via the
+      # desktop/phone client or openbot.run/app after `openbot login`.
       APP_HOST: serkan-openbot_server_1
-      APP_PORT: 3000
+      APP_PORT: 8080
 
   server:
     image: ghcr.io/nightly-labs/openbot:0.49.0
