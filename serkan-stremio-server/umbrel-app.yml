@@ -23,7 +23,7 @@ support: https://www.stremio.com/support
 gallery:
   - https://raw.githubusercontent.com/serkanagdas/nodecast-umbrel-store/main/serkan-stremio-server/icon.svg
 releaseNotes: >-
-  Initial release in the Serkan community app store.
+  Upstream image release 4.20.2.
 dependencies: []
 path: ""
 defaultUsername: ""
