@@ -97,6 +97,7 @@ jobs:
           sed -i "/^releaseNotes: >-/{n;s/.*/  Upstream image release ${TAG}./}" ${{ matrix.dir }}/umbrel-app.yml
 
       - name: Create Pull Request
+        id: pr
         if: steps.cmp.outputs.update == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
@@ -111,5 +112,15 @@ jobs:
             - `${{ matrix.dir }}/docker-compose.yml` image tag
             - `${{ matrix.dir }}/umbrel-app.yml` version + releaseNotes
 
-            **Merge this PR, then umbrelOS → App Store → Update.**
+            Auto-merged by the update workflow.
           commit-message: "chore(${{ matrix.dir }}): bump to ${{ steps.upstream.outputs.version }}"
+
+      - name: Enable auto-merge on the PR
+        # Safety valve: auto-merge honours branch protection. If a required
+        # review is configured, the PR waits for a human instead of merging.
+        if: steps.cmp.outputs.update == 'true' && steps.pr.outputs.pull-request-number != ''
+        run: |
+          gh pr merge "${{ steps.pr.outputs.pull-request-number }}" \
+            --squash --auto --delete-branch
+        env:
+          GH_TOKEN: ${{ github.token }}
