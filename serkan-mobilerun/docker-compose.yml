@@ -1,0 +1,226 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: serkan-mobilerun_server_1
+      APP_PORT: 8765
+
+  server:
+    image: ghcr.io/droidrun/mobilerun:latest
+    restart: on-failure
+    init: true
+    environment:
+      - PORT=8765
+      - DEVICE_IP=192.168.1.101
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    volumes:
+      - ${APP_DATA_DIR}/data:/mobilerun_data
+      - ${APP_DATA_DIR}/data/.android:/home/mobilerun/.android
+      - ${APP_DATA_DIR}/data/.mobilerun:/home/mobilerun/.mobilerun
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        mkdir -p /home/mobilerun/.android /home/mobilerun/.mobilerun
+        if [ -n "$$DEVICE_IP" ]; then
+          adb connect "$$DEVICE_IP:5555" || true
+        fi
+
+        cat << 'EOF' > /tmp/server.py
+        import os
+        import json
+        import subprocess
+        from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+
+        PORT = int(os.environ.get("PORT", 8765))
+        DEVICE_IP = os.environ.get("DEVICE_IP", "192.168.1.101")
+
+        HTML_PAGE = """<!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Mobilerun - Umbrel Agent</title>
+          <style>
+            :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --accent: #38bdf8; --border: #334155; }
+            body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 2rem; display: flex; justify-content: center; }
+            .container { max-width: 800px; width: 100%; }
+            .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+            h1 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+            .badge { background: #065f46; color: #34d399; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 500; }
+            .card { background: var(--card); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1.5rem; }
+            label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
+            input[type="text"], textarea { width: 100%; box-sizing: border-box; background: #0f172a; border: 1px solid var(--border); color: #fff; border-radius: 0.5rem; padding: 0.75rem; font-size: 0.95rem; margin-bottom: 1rem; }
+            button { background: var(--accent); color: #0f172a; border: none; font-weight: 700; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; transition: opacity 0.2s; }
+            button:hover { opacity: 0.9; }
+            button:disabled { opacity: 0.5; cursor: not-allowed; }
+            pre { background: #090d16; border: 1px solid var(--border); border-radius: 0.5rem; padding: 1rem; color: #a5f3fc; overflow-x: auto; max-height: 350px; font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>📱 Mobilerun Agent</h1>
+              <span id="adb-status" class="badge">Checking ADB...</span>
+            </div>
+            
+            <div class="card">
+              <label for="device-target">Cihaz / ADB Hedefi</label>
+              <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                <input type="text" id="device-target" value="192.168.1.101:5555" style="margin-bottom:0;">
+                <button onclick="connectDevice()" style="white-space: nowrap;">Bağlan</button>
+              </div>
+
+              <label for="task-input">Doğal Dil Görevi (Galaxy Note 4)</label>
+              <textarea id="task-input" rows="3" placeholder="Örn: Ayarları aç ve pil durumunu kontrol et, veya Ekran görüntüsü al..."></textarea>
+              
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <button id="run-btn" onclick="runTask()">Görevi Başlat</button>
+                <button onclick="takeScreenshot()" style="background: #475569; color: #fff;">📸 Ekran Görüntüsü</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <label>Canlı Çıktı / Loglar</label>
+              <pre id="output">Hazır. Bir görev çalıştırabilir veya durum sorgulayabilirsiniz.</pre>
+            </div>
+
+            <div id="screenshot-container" class="card" style="display:none; text-align:center;">
+              <label>Son Ekran Görüntüsü</label>
+              <img id="screenshot-img" style="max-width: 100%; max-height: 400px; border-radius: 0.5rem; border: 1px solid var(--border);" />
+            </div>
+          </div>
+
+          <script>
+            async function checkStatus() {
+              try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                const badge = document.getElementById('adb-status');
+                if (data.connected) {
+                  badge.textContent = 'Bağlı: ' + data.device;
+                  badge.style.background = '#065f46';
+                  badge.style.color = '#34d399';
+                } else {
+                  badge.textContent = 'Cihaz Bekleniyor';
+                  badge.style.background = '#831843';
+                  badge.style.color = '#f472b6';
+                }
+              } catch(e) {}
+            }
+
+            async function connectDevice() {
+              const dev = document.getElementById('device-target').value;
+              const out = document.getElementById('output');
+              out.textContent = 'Bağlanılıyor: ' + dev + '...';
+              const res = await fetch('/api/connect', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ device: dev }) });
+              const data = await res.json();
+              out.textContent = data.output;
+              checkStatus();
+            }
+
+            async function runTask() {
+              const prompt = document.getElementById('task-input').value;
+              if (!prompt) return;
+              const btn = document.getElementById('run-btn');
+              const out = document.getElementById('output');
+              btn.disabled = true;
+              out.textContent = 'Görev yürütülüyor: ' + prompt + '... Lütfen bekleyin...';
+              try {
+                const res = await fetch('/api/run', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ prompt: prompt }) });
+                const data = await res.json();
+                out.textContent = data.output || data.error;
+              } catch (e) {
+                out.textContent = 'Hata: ' + e.message;
+              } finally {
+                btn.disabled = false;
+              }
+            }
+
+            async function takeScreenshot() {
+              const out = document.getElementById('output');
+              out.textContent = 'Ekran görüntüsü alınıyor...';
+              const img = document.getElementById('screenshot-img');
+              img.src = '/api/screenshot?t=' + Date.now();
+              document.getElementById('screenshot-container').style.display = 'block';
+              out.textContent = 'Ekran görüntüsü güncellendi.';
+            }
+
+            checkStatus();
+            setInterval(checkStatus, 10000);
+          </script>
+        </body>
+        </html>
+        """
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                if self.path == "/" or self.path.startswith("/?"):
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.end_headers()
+                    self.wfile.write(HTML_PAGE.encode())
+                elif self.path.startswith("/api/status"):
+                    res = subprocess.run(["adb", "devices"], capture_output=True, text=True)
+                    lines = res.stdout.strip().splitlines()
+                    connected = False
+                    dev_name = ""
+                    for line in lines[1:]:
+                        if "device" in line and not "offline" in line:
+                            connected = True
+                            dev_name = line.split()[0]
+                            break
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"connected": connected, "device": dev_name, "raw": res.stdout}).encode())
+                elif self.path.startswith("/api/screenshot"):
+                    res = subprocess.run(["adb", "exec-out", "screencap", "-p"], capture_output=True)
+                    if res.returncode == 0 and res.stdout:
+                        self.send_response(200)
+                        self.send_header("Content-Type", "image/png")
+                        self.end_headers()
+                        self.wfile.write(res.stdout)
+                    else:
+                        self.send_response(500)
+                        self.end_headers()
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            def do_POST(self):
+                length = int(self.headers.get("Content-Length", 0))
+                body = self.rfile.read(length)
+                try:
+                    data = json.loads(body) if body else {}
+                except:
+                    data = {}
+
+                if self.path == "/api/connect":
+                    target = data.get("device", DEVICE_IP + ":5555")
+                    res = subprocess.run(["adb", "connect", target], capture_output=True, text=True)
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"output": res.stdout + res.stderr}).encode())
+                elif self.path == "/api/run":
+                    prompt = data.get("prompt", "")
+                    cmd = [".venv/bin/mobilerun", "run", prompt]
+                    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+                    out = proc.stdout + ("\n" + proc.stderr if proc.stderr else "")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"output": out, "exit_code": proc.returncode}).encode())
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+        server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
+        print(f"Mobilerun Umbrel WebUI running on port {PORT}...")
+        server.serve_forever()
+        EOF
+
+        python3 /tmp/server.py
