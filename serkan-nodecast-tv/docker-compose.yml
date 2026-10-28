@@ -16,8 +16,5 @@ services:
       - PORT=3000
     devices:
       - /dev/dri:/dev/dri
-    group_add:
-      - video
-      - render
     volumes:
       - ${APP_DATA_DIR}/data:/app/data
