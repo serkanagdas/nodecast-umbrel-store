@@ -4,7 +4,7 @@ name: NodeCast TV
 tagline: Self-hosted IPTV player for Xtream Codes and M3U providers
 icon: https://raw.githubusercontent.com/serkanagdas/serkan-umbrel-store/main/serkan-nodecast-tv/icon.svg
 category: Media
-version: "2.2.1-r4"
+version: "2.2.1-r5"
 port: 3000
 description: >-
   Modern web-based IPTV player featuring Live TV, EPG, Movies (VOD) and
