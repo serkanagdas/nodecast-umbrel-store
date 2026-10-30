@@ -1,0 +1,28 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      # The format here is: <app-id>_<docker-service-name>_1
+      # NOTE: TeamSpeak has no web interface — the proxy exists only because
+      # umbrel requires one. Connect with the TeamSpeak client instead
+      # (umbrel-ip:9987 UDP), on LAN or over Tailscale.
+      APP_HOST: serkan-teamspeak_server_1
+      APP_PORT: 9987
+
+  server:
+    image: teamspeak:3.13.8
+    restart: on-failure
+    init: true
+    environment:
+      # License accepted on first run (print/view: TS3SERVER_LICENSE=view)
+      - TS3SERVER_LICENSE=accept
+    # Raw ports for the TeamSpeak client — umbrel's HTTP proxy cannot carry
+    # UDP voice traffic. Reach them on LAN or over Tailscale (100.x IP).
+    ports:
+      - "9987:9987/udp"   # voice
+      - "30033:30033"     # file transfer
+      - "10011:10011"     # server query
+    volumes:
+      # SQLite database + files (ts3server.sqlitedb, files/, logs/)
+      - ${APP_DATA_DIR}/data:/var/ts3server

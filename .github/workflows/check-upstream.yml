@@ -39,6 +39,11 @@ jobs:
             image: stremio/server
             path: stremio/server
             prefix: ""
+          - dir: serkan-teamspeak
+            registry: dockerhub
+            image: teamspeak
+            path: library/teamspeak
+            prefix: ""
     steps:
       - name: Checkout store repo
         uses: actions/checkout@v4

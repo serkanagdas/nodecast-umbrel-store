@@ -1,0 +1,40 @@
+manifestVersion: 1
+id: serkan-teamspeak
+name: TeamSpeak 3 Server
+tagline: Voice communication server for gaming and teams
+icon: https://raw.githubusercontent.com/serkanagdas/nodecast-umbrel-store/main/serkan-teamspeak/icon.svg
+category: Social
+version: "3.13.8"
+port: 9987
+description: >-
+  TeamSpeak 3 — the classic voice server for gaming, education and
+  teams. Runs entirely on your umbrel: low latency, low bandwidth,
+  your data on your hardware.
+
+
+  Connecting (no web interface — use the TeamSpeak client):
+
+  - Voice: umbrel-ip:9987 (UDP) — works on LAN and over Tailscale
+  - File transfer: port 30033  |  Server Query: port 10011
+
+
+  First run: grab the server admin privilege key from the logs —
+  docker logs serkan-teamspeak_server_1 | grep -i "privilege"
+  Then paste it in the client (Permissions → Use Privilege Key).
+
+  License: the container sets TS3SERVER_LICENSE=accept.
+
+developer: TeamSpeak Systems
+website: https://www.teamspeak.com
+submitter: Serkan
+submission: https://github.com/serkanagdas/nodecast-umbrel-store
+repo: https://github.com/serkanagdas/nodecast-umbrel-store
+support: https://github.com/TeamSpeak-Systems/teamspeak-linux-docker-images/issues
+gallery:
+  - https://raw.githubusercontent.com/serkanagdas/nodecast-umbrel-store/main/serkan-teamspeak/icon.svg
+releaseNotes: >-
+  Initial release — TeamSpeak 3 server 3.13.8.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
